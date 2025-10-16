@@ -21,37 +21,32 @@ public class AIMover : MonoBehaviour
     {
         if (Physics.BoxCast(transform.position + new Vector3(0, 1, 0), new Vector3(0.5f, 1, 0.5f), transform.forward, out hitFront, Quaternion.identity, forwardDist))
         {
-                if (Physics.BoxCast(transform.position + new Vector3(0, 1, 0), new Vector3(0.5f, 1, 0.5f), -transform.right, out hitLeft, Quaternion.identity, sideDist))
-                {
-                    
-                        leftWall = true;
-                   
-                }
+            if (Physics.BoxCast(transform.position + new Vector3(0, 1, 0), new Vector3(0.5f, 1, 0.5f), -transform.right, out hitLeft, Quaternion.identity, sideDist))
+            {
+                leftWall = true;
+            }
 
-                if (Physics.BoxCast(transform.position + new Vector3(0, 1, 0), new Vector3(0.5f, 1, 0.5f), transform.right, out hitRight, Quaternion.identity, sideDist))
-                {
-                    
-                        rightWall = true;
-                    
-                }
+            if (Physics.BoxCast(transform.position + new Vector3(0, 1, 0), new Vector3(0.5f, 1, 0.5f), transform.right, out hitRight, Quaternion.identity, sideDist))
+            {
+                rightWall = true;
+            }
 
-                if (leftWall && !rightWall)
-                {
-                    transform.Rotate(Vector3.up, 90);
-                }
-                else if (!leftWall && rightWall)
-                {
-                    transform.Rotate(Vector3.up, -90);
-                }
-                else if (leftWall && rightWall) 
-                {
-                    transform.Rotate(Vector3.up, 180);
-                }
-                else
-                {
-                    transform.Rotate(Vector3.up, 90);
-                }
-            
+            if (leftWall && !rightWall)
+            {
+                transform.Rotate(Vector3.up, 90);
+            }
+            else if (!leftWall && rightWall)
+            {
+                transform.Rotate(Vector3.up, -90);
+            }
+            else if (leftWall && rightWall)
+            {
+                transform.Rotate(Vector3.up, 180);
+            }
+            else
+            {
+                transform.Rotate(Vector3.up, 90);
+            }
         }
     }
 
