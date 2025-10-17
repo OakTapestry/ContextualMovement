@@ -9,33 +9,50 @@ public class AdvancedMover : MonoBehaviour
 
     int randInt;
 
-    [SerializeField] GameObject downCheck;
+    [SerializeField] GameObject downCheck, jumpCheck;
+
+    Rigidbody rbody;
+
+    bool grounded;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        movementSpeed = 3.0f;
+        movementSpeed = Random.Range(3, 8);
         forwardDist = 1.0f;
         sideDist = 2.0f;
         downDist = 1.0f;
 
+        rbody = GetComponent<Rigidbody>();
+        grounded = true;
     }
 
     // Update is called once per frame
     private void Update()
     {
-        // Rotate the mover if an object is detected in front
-        if (Physics.BoxCast(transform.position + transform.up, new Vector3(0.5f, 0.9f, 0.5f), transform.forward, out hitFront, Quaternion.identity, forwardDist))
+        if (grounded)
         {
-            transform.LookAt(transform.position - hitFront.normal);
+            // Rotate the mover if an object is detected in front
+            if (Physics.BoxCast(transform.position + transform.up, new Vector3(0.5f, 0.9f, 0.5f), transform.forward, out hitFront, Quaternion.identity, forwardDist))
+            {
+                transform.LookAt(transform.position - hitFront.normal);
 
-            RotateAway();
-        }
+                RotateAway();
+            }
 
-        // Rotate the mover if a hole is detected in front
-        if (!Physics.BoxCast(downCheck.transform.position, new Vector3(0.5f, 0.9f, 0.5f), -transform.up, out hitFront, Quaternion.identity, forwardDist))
-        {       
-            RotateAway();
+            // Rotate the mover if a hole is detected in front
+            if (!Physics.BoxCast(downCheck.transform.position, new Vector3(0.5f, 0.9f, 0.5f), -transform.up, out hitFront, Quaternion.identity, forwardDist))
+            {
+                if (Physics.BoxCast(jumpCheck.transform.position, new Vector3(0.5f, 0.9f, 0.5f), -transform.up, out hitFront, Quaternion.identity, forwardDist))
+                {
+                    rbody.AddRelativeForce(transform.up * 300);
+                    grounded = false;
+                }
+                else
+                {
+                    RotateAway();
+                }
+            }
         }
     }
 
@@ -89,5 +106,10 @@ public class AdvancedMover : MonoBehaviour
             }
 
         }
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        grounded = true;
     }
 }
