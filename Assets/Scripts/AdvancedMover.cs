@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class AdvancedMover : MonoBehaviour
 {
@@ -14,6 +15,8 @@ public class AdvancedMover : MonoBehaviour
     Rigidbody rbody;
 
     bool grounded;
+
+    List<GameObject> targets = new List<GameObject>();
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -39,14 +42,40 @@ public class AdvancedMover : MonoBehaviour
 
                 RotateAway();
             }
+            else if (targets.Count > 0)
+            {
+                if (!Physics.Linecast(transform.position + new Vector3(0, 0.1f, 0), targets[0].transform.position + new Vector3(0, 0.1f, 0)))
+                {
+                    transform.LookAt(targets[0].transform.position);
+                }
+                
+                if (Vector3.Distance(transform.position, targets[0].transform.position) < 0.5f)
+                {
+                    targets[0].SetActive(false);
+                }
+
+                if (targets[0].activeSelf == false)
+                {
+                    targets.RemoveAt(0);
+                }
+            }
 
             // Rotate the mover if a hole is detected in front
             if (!Physics.BoxCast(downCheck.transform.position, new Vector3(0.5f, 0.9f, 0.5f), -transform.up, out hitFront, Quaternion.identity, forwardDist))
             {
-                if (Physics.BoxCast(jumpCheck.transform.position, new Vector3(0.5f, 0.9f, 0.5f), -transform.up, out hitFront, Quaternion.identity, forwardDist))
+                // Check if there is a floor to jump to
+                if (Physics.BoxCast(jumpCheck.transform.position, new Vector3(0.3f, 0.9f, 0.3f), -transform.up, out hitFront, Quaternion.identity, forwardDist))
                 {
-                    rbody.AddRelativeForce(transform.up * 300);
-                    grounded = false;
+                    // Check to make sure there is no object in the way of the jump
+                    if (!Physics.CheckBox(jumpCheck.transform.position, new Vector3(0.5f, 0.9f, 0.5f)))
+                    {
+                        rbody.AddRelativeForce(transform.up * 300);
+                        grounded = false;
+                    }
+                    else
+                    {
+                        RotateAway();
+                    }
                 }
                 else
                 {
@@ -79,17 +108,14 @@ public class AdvancedMover : MonoBehaviour
         if (leftWall && !rightWall)
         {
             transform.Rotate(Vector3.up, 90);
-            Debug.Log("Right");
         }
         else if (!leftWall && rightWall)
         {
             transform.Rotate(Vector3.up, -90);
-            Debug.Log("Left");
         }
         else if (leftWall && rightWall)
         {
             transform.Rotate(Vector3.up, 180);
-            Debug.Log("Back");
         }
         else
         {
@@ -97,12 +123,10 @@ public class AdvancedMover : MonoBehaviour
             if (randInt == 0)
             {
                 transform.Rotate(Vector3.up, 90);
-                Debug.Log("RightRand");
             }
             else
             {
                 transform.Rotate(Vector3.up, -90);
-                Debug.Log("LeftRand");
             }
 
         }
@@ -111,5 +135,21 @@ public class AdvancedMover : MonoBehaviour
     private void OnCollisionEnter(Collision collision)
     {
         grounded = true;
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Pickup"))
+        {
+            targets.Add(other.transform.parent.gameObject);
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Pickup"))
+        {
+            targets.Remove(other.transform.parent.gameObject);
+        }
     }
 }

@@ -262,9 +262,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2504792046106991532}
-  - component: {fileID: 2311725422558968454}
+  - component: {fileID: 7430091706537502862}
   m_Layer: 0
-  m_Name: FrontTrigger
+  m_Name: DetectionTrigger
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -285,8 +285,8 @@ Transform:
   m_Children: []
   m_Father: {fileID: 2218795437953310911}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &2311725422558968454
-BoxCollider:
+--- !u!135 &7430091706537502862
+SphereCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -304,7 +304,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 2, z: 1}
+  m_Radius: 10
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &6260648591802589154
 GameObject:
