@@ -44,11 +44,11 @@ public class AdvancedMover : MonoBehaviour
             }
             else if (targets.Count > 0)
             {
-                if (!Physics.Linecast(transform.position + new Vector3(0, 0.1f, 0), targets[0].transform.position + new Vector3(0, 0.1f, 0)))
+                if (!Physics.BoxCast(transform.position + transform.up, new Vector3(0.5f, 0.9f, 0.5f), targets[0].transform.position - transform.position, Quaternion.identity, Vector3.Distance(transform.position, targets[0].transform.position)))
                 {
                     transform.LookAt(targets[0].transform.position);
                 }
-                
+
                 if (Vector3.Distance(transform.position, targets[0].transform.position) < 0.5f)
                 {
                     targets[0].SetActive(false);
