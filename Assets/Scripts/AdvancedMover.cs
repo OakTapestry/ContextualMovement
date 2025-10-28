@@ -18,7 +18,7 @@ public class AdvancedMover : MonoBehaviour
 
     bool grounded;
 
-    public List<GameObject> targets = new List<GameObject>();
+    public List<GameObject> targets = new List<GameObject>(), runners = new(), hunters = new();
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -30,16 +30,11 @@ public class AdvancedMover : MonoBehaviour
 
         rbody = GetComponent<Rigidbody>();
         grounded = true;
-        gameObject.SetActive(true);
     }
 
     // Update is called once per frame
     private void Update()
     {
-        if (gameObject.activeSelf == false)
-        {
-            gameObject.transform.position = new Vector3(0,-20,0);
-        }
         if (grounded)
         {
             // Rotate the mover if an object is detected in front
@@ -49,83 +44,60 @@ public class AdvancedMover : MonoBehaviour
 
                 RotateAway();
             }
-            //move towards or away from target if there is one
+            else if (!isHunter && hunters.Count > 0)
+            {
+                //draw line straight to hunter to see if there is a wall in between
+                Physics.Linecast(transform.position + new Vector3(0, 0.1f, 0), hunters[0].transform.position + new Vector3(0, 0.1f, 0), out RaycastHit hit);
+                if (hit.collider == null || !hit.collider.gameObject.CompareTag("Wall"))
+                {
+                    //no wall in between, do boxcast to see if the hunter can even reach the runner through the potential wall gap
+                    Physics.BoxCast(transform.position + transform.up, new Vector3(0.5f, 0.9f, 0.5f), hunters[0].transform.position - transform.position, out hit, Quaternion.identity, Vector3.Distance(transform.position, hunters[0].transform.position));
+
+                    //the hunter can reach the runner, so run away
+                    if (hit.collider.gameObject.CompareTag("Hunter") || hit.collider == null)
+                    {
+                        transform.LookAt(hunters[0].transform.position);
+                        transform.Rotate(Vector3.up, 180);
+                    }
+                }
+
+            }
+            else if (isHunter && runners.Count > 0)
+            {
+                Physics.Linecast(transform.position + new Vector3(0, 0.1f, 0), runners[0].transform.position + new Vector3(0, 0.1f, 0), out RaycastHit hit);
+
+
+                if (hit.collider == null || !hit.collider.gameObject.CompareTag("Wall"))
+                {
+                    Physics.BoxCast(transform.position + transform.up, new Vector3(0.5f, 0.9f, 0.5f), runners[0].transform.position - transform.position, out hit, Quaternion.identity, Vector3.Distance(transform.position, runners[0].transform.position));
+                    if (hit.collider.gameObject.CompareTag("Runner") || hit.collider == null)
+                    {
+                        transform.LookAt(runners[0].transform.position);
+                    }
+                }
+            }
             else if (targets.Count > 0)
             {
-                for (int i = 0; i < targets.Count; i++)
+                if (!Physics.Linecast(transform.position + new Vector3(0, 0.1f, 0), targets[0].transform.position + new Vector3(0, 0.1f, 0)))
+
+                    if (!Physics.BoxCast(transform.position + transform.up, new Vector3(0.5f, 0.9f, 0.5f), targets[0].transform.position - transform.position, Quaternion.identity, Vector3.Distance(transform.position, targets[0].transform.position)))
+                    {
+                        transform.LookAt(targets[0].transform.position);
+                    }
+
+            }
+
+            if (targets.Count > 0)
+            {
+                if (Vector3.Distance(transform.position, targets[0].transform.position) < 0.5f)
                 {
-                    if (!Physics.BoxCast(transform.position + transform.up, new Vector3(0.5f, 0.9f, 0.5f), targets[i].transform.position - transform.position, Quaternion.identity, Vector3.Distance(transform.position, targets[i].transform.position)))
-                    {
-                        if (isHunter == false)
-                        {
-                            bool foundHunter = false;
-                            for (int j = 0; j < targets.Count; j++)
-                            {
-                                if (targets[j].CompareTag("Hunter"))
-                                {
-                                    transform.LookAt(targets[j].transform.position);
-                                    transform.Rotate(Vector3.up, 180);
-                                    foundHunter = true;
-                                    j = targets.Count; // Exit loop
-                                }
-                            }
-                            if (foundHunter == false)
-                            {
-                                transform.LookAt(targets[0].transform.position);
-                            }
-                        }
-                        else
-                        {
-                            bool foundRunner = false;
-                            for (int j = 0; j < targets.Count; j++)
-                            {
-                                if (targets[j].CompareTag("Runner"))
-                                {
-                                    transform.LookAt(targets[j].transform.position);
-                                    foundRunner = true;
-                                    j = targets.Count; // Exit loop
-                                }
-                            }
-                            if (foundRunner == false)
-                            {
-                                transform.LookAt(targets[0].transform.position);
-                            }
-                        }
-
-
-                    }
+                    targets[0].SetActive(false);
                 }
-                
 
-                for (int i = 0; i < targets.Count; i++)
+                if (targets[0].activeSelf == false)
                 {
-                    if (isHunter)
-                    {
-                        if (Vector3.Distance(transform.position, targets[i].transform.position) < 0.5f && targets[i].CompareTag("Hunter") == false)
-                        {
-                            targets[i].SetActive(false);
-                        }
-
-                        if (targets[i].activeSelf == false)
-                        {
-                            targets.RemoveAt(i);
-                        }
-                    }
-                    else
-                    {
-                        if (Vector3.Distance(transform.position, targets[i].transform.position) < 0.5f && targets[i].CompareTag("Hunter") == false && targets[i].CompareTag("Runner") == false)
-                        {
-                            targets[i].SetActive(false);
-                        }
-
-                        if (targets[i].activeSelf == false)
-                        {
-                            targets.RemoveAt(i);
-                        }
-                    }
-                    
+                    targets.RemoveAt(0);
                 }
-                
             }
 
             // Rotate the mover if a hole is detected in front
@@ -202,11 +174,11 @@ public class AdvancedMover : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.collider.CompareTag("Ground"))
+        if (collision.gameObject.CompareTag("Ground"))
         {
             grounded = true;
         }
-        
+
     }
 
     private void OnTriggerEnter(Collider other)
@@ -215,9 +187,13 @@ public class AdvancedMover : MonoBehaviour
         {
             targets.Add(other.transform.parent.gameObject);
         }
-        if (other.CompareTag("Hunter") || other.CompareTag("Runner"))
+        else if (other.CompareTag("Runner"))
         {
-            targets.Add(other.transform.parent.gameObject);
+            runners.Add(other.transform.parent.gameObject);
+        }
+        else if (other.CompareTag("Hunter"))
+        {
+            hunters.Add(other.transform.parent.gameObject);
         }
     }
 
@@ -227,9 +203,13 @@ public class AdvancedMover : MonoBehaviour
         {
             targets.Remove(other.transform.parent.gameObject);
         }
-        if (other.CompareTag("Hunter") || other.CompareTag("Runner"))
+        else if (other.CompareTag("Runner"))
         {
-            targets.Remove(other.transform.parent.gameObject);
+            runners.Remove(other.transform.parent.gameObject);
+        }
+        else if (other.CompareTag("Hunter"))
+        {
+            hunters.Remove(other.transform.parent.gameObject);
         }
     }
 }
