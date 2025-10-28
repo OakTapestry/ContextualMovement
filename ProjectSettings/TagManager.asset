@@ -6,6 +6,9 @@ TagManager:
   tags:
   - Wall
   - Pickup
+  - Hunter
+  - Runner
+  - Ground
   layers:
   - Default
   - TransparentFX
