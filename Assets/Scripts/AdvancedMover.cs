@@ -25,7 +25,10 @@ public class AdvancedMover : MonoBehaviour
     bool disguiseAlmostActive;
     float disguiseTimer;
 
-    bool deactivateSearch = false;
+    bool deactivateWayOutSearch = false;
+
+    bool runningAway = false;
+    float runAwayTimer = 0;
 
     public List<GameObject> targets = new List<GameObject>(), runners = new(), hunters = new();
 
@@ -70,6 +73,15 @@ public class AdvancedMover : MonoBehaviour
         if (grounded)
         {
             RayDetection();
+
+            if (runningAway && runAwayTimer < 1f)
+            {
+                runAwayTimer += Time.deltaTime;
+            }
+            else if (runningAway)
+            {
+                runningAway = false;
+            }
 
             Collecting();
 
@@ -141,7 +153,7 @@ public class AdvancedMover : MonoBehaviour
     {
         if (other.CompareTag("Pickup"))
         {
-            if (isHunter && other.transform.gameObject.GetComponent<MeshRenderer>().material.color == Color.red)
+            if (isHunter && (other.transform.gameObject.GetComponent<MeshRenderer>().material.color == Color.red || other.transform.gameObject.GetComponent<MeshRenderer>().material.color == Color.green))
             {
 
             }
@@ -158,6 +170,7 @@ public class AdvancedMover : MonoBehaviour
         else if (other.CompareTag("Hunter") && other.GetComponentInChildren<MeshRenderer>().material.color == Color.red)
         {
             hunters.Add(other.transform.parent.gameObject);
+            runningAway = false;
         }
     }
 
@@ -185,7 +198,7 @@ public class AdvancedMover : MonoBehaviour
 
             RotateAway();
         }
-        else if (!isHunter && hunters.Count > 0 && looksLikeRunner)
+        else if (!isHunter && hunters.Count > 0 && looksLikeRunner && !runningAway)
         {
             List<Vector2> hunterDirections = new List<Vector2>();
             int numberOfSeenHunters = 0;
@@ -213,6 +226,9 @@ public class AdvancedMover : MonoBehaviour
             {
                 transform.LookAt(hunters[0].transform.position);
                 transform.Rotate(Vector3.up, 180);
+
+                runningAway = true;
+                runAwayTimer = 0f;
             }
             else if (numberOfSeenHunters > 1)
             {
@@ -227,7 +243,7 @@ public class AdvancedMover : MonoBehaviour
 
                 bool foundWayOut = false;
                 int attempts = 0;
-                while (!foundWayOut && !deactivateSearch)
+                while (!foundWayOut && !deactivateWayOutSearch)
                 {
                     RaycastHit hit = new RaycastHit();
                     //need to cast a ray forward to see if there is a wall in the way
@@ -239,7 +255,7 @@ public class AdvancedMover : MonoBehaviour
                         attempts++;
                         if (attempts > 36)
                         {
-                            deactivateSearch = true;
+                            deactivateWayOutSearch = true;
                             foundWayOut = true;
                         }
                     }
@@ -248,8 +264,10 @@ public class AdvancedMover : MonoBehaviour
                         foundWayOut = true;
                     }
                 }
-            }
 
+                runningAway = true;
+                runAwayTimer = 0f;
+            }
         }
         else if (isHunter && runners.Count > 0)
         {
@@ -271,7 +289,11 @@ public class AdvancedMover : MonoBehaviour
 
                 if (!Physics.BoxCast(transform.position + transform.up, new Vector3(0.5f, 0.9f, 0.5f), targets[0].transform.position - transform.position, Quaternion.identity, Vector3.Distance(transform.position, targets[0].transform.position)))
                 {
-                    transform.LookAt(targets[0].transform.position);
+                    if (!runningAway)
+                    {
+                        transform.LookAt(targets[0].transform.position);
+                    }
+                    
                 }
 
         }
@@ -282,7 +304,7 @@ public class AdvancedMover : MonoBehaviour
         {
             if (Vector3.Distance(transform.position, targets[0].transform.position) < 0.5f)
             {
-                deactivateSearch = false;
+                deactivateWayOutSearch = false;
 
                 //speed
                 if (targets[0].GetComponentInChildren<MeshRenderer>().material.color == Color.yellow)
@@ -295,7 +317,10 @@ public class AdvancedMover : MonoBehaviour
                 //disguise
                 else if (targets[0].GetComponentInChildren<MeshRenderer>().material.color == Color.green)
                 {
-                    targets[0].SetActive(false);
+                    if (!isHunter)
+                    {
+                        targets[0].SetActive(false);
+                    }   
                 }
                 else if (targets[0].GetComponentInChildren<MeshRenderer>().material.color == Color.red)
                 {
@@ -312,6 +337,21 @@ public class AdvancedMover : MonoBehaviour
             {
                 targets.RemoveAt(0);
             }
+        }
+
+        if(isHunter && runners.Count > 0)
+        {
+            if (Vector3.Distance(transform.position, runners[0].transform.position) < 3f)
+            {
+                runners[0].SetActive(false);
+                
+            }
+        }
+
+        if (isHunter && runners.Count > 0 && runners[0].activeSelf == false)
+        {
+            Destroy(runners[0]);
+            runners.RemoveAt(0);
         }
     }
     private void HoleInFloor()
