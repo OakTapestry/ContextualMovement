@@ -85,6 +85,9 @@ MonoBehaviour:
   jumpCheck: {fileID: 8318114007519161082}
   isHunter: 1
   looksLikeRunner: 0
+  targets: []
+  runners: []
+  hunters: []
 --- !u!1 &2196676643673366981
 GameObject:
   m_ObjectHideFlags: 0
@@ -152,7 +155,7 @@ GameObject:
   - component: {fileID: 2557566462641257218}
   m_Layer: 0
   m_Name: Body
-  m_TagString: Untagged
+  m_TagString: Hunter
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

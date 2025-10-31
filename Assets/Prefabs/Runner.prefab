@@ -156,7 +156,7 @@ GameObject:
   - component: {fileID: 1332996617368796171}
   m_Layer: 0
   m_Name: Body
-  m_TagString: Untagged
+  m_TagString: Runner
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -391,6 +391,9 @@ MonoBehaviour:
   jumpCheck: {fileID: 7337349065773533963}
   isHunter: 0
   looksLikeRunner: 1
+  targets: []
+  runners: []
+  hunters: []
 --- !u!1 &7337349065773533963
 GameObject:
   m_ObjectHideFlags: 0
