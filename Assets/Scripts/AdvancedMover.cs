@@ -308,7 +308,14 @@ public class AdvancedMover : MonoBehaviour
                 //speed
                 if (targets[0].GetComponentInChildren<MeshRenderer>().material.color == Color.yellow)
                 {
-                    movementSpeed *= 1.5f;
+                    if (isHunter)
+                    {
+                        movementSpeed = 12f;
+                    }
+                    else
+                    {
+                        movementSpeed = 11f;
+                    }
                     speedBoosted = true;
                     speedBoostTimer = 0f;
                     targets[0].SetActive(false);
